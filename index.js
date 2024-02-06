@@ -9,6 +9,7 @@ const helmet = require('helmet');
 const morgan = require('morgan');
 // const roleRoutes = require('./routes/roleRoutes')
 const authRoutes = require('./routes/userRoutes')
+const { createTask, updateTask } = require('./config/kafka');
 
 app.use(helmet());
 app.use(bodyParser.json());
@@ -29,6 +30,14 @@ db.sequelize.sync({ alter: true })
 app.get('/', (req, res) => {
   res.send('Hello World!')
 })
+
+Promise.all([createTask(), updateTask()])
+  .then(() => {
+    console.log('All Kafka producers connected and sent messages.');
+  })
+  .catch((error) => {
+    console.error('Error connecting to Kafka:', error);
+  });
 
 app.listen(port, () => {
   console.log(`Example app listening on port ${port}`)

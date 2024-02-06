@@ -7,6 +7,7 @@ const { hashPassword } = require('../helper/hashpassword')
 const {regextest} = require('../helper/regextest');
 const {encrypt} = require('../helper/encrypt')
 const {decrypt} = require('../helper/encrypt')
+const kafkaProducer = require('../config/kafka');
 const UsersDB = db.users;
 const Op = db.Sequelize.Op;
 
@@ -41,6 +42,17 @@ exports.register = async (req, res) => {
       const encryptedId = encrypt(newuser1.id.toString());
       console.log('\n' + newuser1.id + '\n' );
       newuser1.id = encryptedId;
+
+      const msg = {
+        userID: newuser.id,
+        typeTask: `user ID: ${newuser.id}`,
+        status: "active",
+        data:{
+            user: newuser.id,
+            desc: 'created user'
+        }
+    }
+    kafkaProducer.createTask(msg);
 
       res.status(201).json({ success: true, message: 'User registered successfully', data: newuser1 });
   } catch (error) {
@@ -181,6 +193,17 @@ exports.edit = async (req, res) => {
 
       user.id = req.params.id;
       user.password = "sensored password";
+
+      const msg = {
+        userID: newuser.id,
+        typeTask: `user ID: ${newuser.id}`,
+        data:{
+            user: user,
+            desc: req.body.comment || 'update user'
+        },
+        databak: FindID
+    }
+    kafkaProducer.updateTask(msg);
   
       res.status(200).send({
         success: true,
