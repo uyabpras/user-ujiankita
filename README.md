@@ -13,7 +13,7 @@ IDE               :  Vscode
 3. run service "node index.js"
 ````
 
-##list service
+## list service
 
 ini adalah list service yang digunakan dan harus dijalankan bersamaan agar service-service yang ada berjalan dengan baik
 ````
