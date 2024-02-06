@@ -55,16 +55,18 @@ exports.register = async (req, res) => {
 
 exports.login = async (req,res) =>{
     try {
+        console.log(req.body);
         if (regextest(req.body.email, req.body.password) != null) {
-          return res.status(401).json({ message: 'Authentication failed' });
+          return res.status(401).json({ message: regextest(req.body.email, req.body.password) });
         }
-        const userLoggedin = await UsersDB.findOne({ where: req.body.email | req.body.nomer_induk });
+        const userLoggedin = await UsersDB.findOne({ where: { [Op.or]: [{ email: req.body.email }, { nomer_induk: req.body.nomer_induk }] } });
 
         if (!userLoggedin) {
-          return res.status(401).json({ message: 'Authentication failed' });
+          return res.status(401).json({ message: 'Invalid email or nomer_induk' });
         }
+        console.log(userLoggedin.id);
     
-        const isPasswordValid = await bcrypt.compare(password, userLoggedin.password);
+        const isPasswordValid = await bcrypt.compare(req.body.password, userLoggedin.password);
     
         if (!isPasswordValid) {
           return res.status(401).json({ message: 'Authentication failed' });
@@ -74,7 +76,8 @@ exports.login = async (req,res) =>{
                       { 
                         id: userLoggedin.id, 
                         email: userLoggedin.email,
-                        nomer_induk: userLoggedin.nomer_induk
+                        nomer_induk: userLoggedin.nomer_induk,
+                        role: userLoggedin.role
                       },
                           process.env.SECRET_KEY, {
                             expiresIn: '1h', 
